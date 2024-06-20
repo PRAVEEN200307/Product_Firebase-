@@ -1,69 +1,65 @@
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../Firebase/firebase";
 import { uid } from "uid";
-import {  toast } from 'react-toastify';
+import { toast } from "react-toastify";
 
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import Input from "../Components/Input";
 
 function AddProductPage() {
-  const AddFireStore = async (e) => {
-    e.preventDefault();
+  const schema = yup
+    .object({
+      productName: yup.string().min(3).required(),
+      productBrand: yup.string().min(3).required(),
+      price: yup.number().required(),
+    })
+    .required();
 
-    const formData =  new FormData(e.target);
-    const filteredData=[...formData].reduce( (storeVar,[key ,val]) =>{
-        storeVar[key]= val
-        return storeVar
-    },{})
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
 
-     await setDoc(doc(db, "product", uid(16)), {
-       filteredData
+  const AddFireStore = async (filteredData) => {
+    const formData = new FormData(filteredData.target);
+
+    await setDoc(doc(db, "product", uid(16)), {
+      filteredData,
     });
 
-    toast.success("Product is Added")
+    toast.success("Product is Added");
     console.log("data is succesfully addded");
-    e.target.reset();
   };
 
   return (
     <div className="p-10">
       <div className="shadow">
         <h1 className="text-2xl text-center">Add Product</h1>
-        <form className="p-4" onSubmit={AddFireStore}>
-          <div className=" space-y-2 mt-3">
-            <label htmlFor="productName" className=" text-pretty block">
-              Product Name
-            </label>
-            <input
-              type="text"
-              name="productName"
-              id="productName"
-              className=" border w-full py-2 px-3 rounded outline-none hover:border-blue-400"
-              placeholder="Product Name"
-            />
-          </div>
-          <div className=" space-y-2 mt-3">
-            <label htmlFor="productBrand" className=" text-pretty block">
-              product Brand
-            </label>
-            <input
-              type="text"
-              name="productBrand"
-              id="productBrand"
-              className=" border w-full py-2 px-3 rounded outline-none hover:border-blue-400"
-              placeholder="Product Brand"
-            />
-          </div>
-          <div className=" space-y-2 mt-3">
-            <label htmlFor="price" className="text-pretty block">
-              Product Price
-            </label>
-            <input
-              type="text"
-              name="price"
-              id="price"
-              className=" border w-full py-2 px-3 rounded outline-none hover:border-blue-400"
-              placeholder="Product price"
-            />
-          </div>
+        <form className="p-4" onSubmit={handleSubmit(AddFireStore)}>
+          <Input
+            ItemName={"Product Name"}
+            IdentityName={"productName"}
+            error={errors.productName}
+            register={{ ...register("productName") }}
+          />
+          <Input
+            ItemName={"product Brand"}
+            IdentityName={"productBrand"}
+            error={errors.productName}
+            register={{ ...register("productBrand") }}
+          />
+          <Input
+            ItemName={"Product Price"}
+            IdentityName={"price"}
+            error={errors.price}
+            register={{ ...register("price") }}
+            type="number"
+          />
           <div>
             <button className=" bg-green-600 py-3 px-3 mt-2 rounded text-white">
               Add Product
